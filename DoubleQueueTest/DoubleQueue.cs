@@ -25,7 +25,6 @@ namespace DoubleQueueTest {
         private static ManualResetEvent _finishedEvent1;
         private static ManualResetEvent _producerEvent1;
 
-
         private static ConcurrentQueue<User> _writeQueue2;
         private static ConcurrentQueue<User> _readQueue2;
         private static ConcurrentQueue<User> _currentQueue2;
@@ -33,6 +32,7 @@ namespace DoubleQueueTest {
         private static AutoResetEvent _dataEvent2;
         private static ManualResetEvent _finishedEvent2;
         private static ManualResetEvent _producerEvent2;
+
         public DoubleQueue() {
             _writeQueue1 = new ConcurrentQueue<User>();
             _readQueue1 = new ConcurrentQueue<User>();
@@ -50,15 +50,16 @@ namespace DoubleQueueTest {
             _dataEvent2 = new AutoResetEvent(false);
             _finishedEvent2 = new ManualResetEvent(true);
             _producerEvent2 = new ManualResetEvent(true);
-            Task.Factory.StartNew(() => ConsumerQueue2(), TaskCreationOptions.None);
+            Task.Factory.StartNew(() => ConsumerQueue2(), TaskCreationOptions.LongRunning);
         }
 
         public void Write(User user) {
-            switch (user.GetHashCode() %2+1)
+            switch (user.GetHashCode() % 2 + 1)
             {
                 case 1:
                     HashCode1(user);
                     break;
+
                 case 2:
                     HashCode2(user);
                     break;
@@ -73,6 +74,7 @@ namespace DoubleQueueTest {
             _dataEvent1.Set();
             _finishedEvent1.Set();
         }
+
         public void HashCode2(User user) {
             _producerEvent2.WaitOne();
             _finishedEvent2.Reset();
@@ -81,6 +83,7 @@ namespace DoubleQueueTest {
             _dataEvent2.Set();
             _finishedEvent2.Set();
         }
+
         public void ConsumerQueue1() {
             ConcurrentQueue<User> consumerQueue;
             User user;
@@ -109,7 +112,7 @@ namespace DoubleQueueTest {
                 }
             }
         }
-        
+
         public void ConsumerQueue2() {
             ConcurrentQueue<User> consumerQueue;
             User user;

@@ -8,10 +8,9 @@ namespace DoubleQueueTest {
         private static DoubleQueue doubleQueue = new DoubleQueue();
         private static object obj = new object();
 
+        private static DoubleQueueList doubleQueueList = new DoubleQueueList(6);
 
-        private static DoubleQueueList doubleQueueList = new DoubleQueueList(5);
         private static void Main(string[] args) {
-
             //        #region 使用双缓冲队列
 
             //        Parallel.For(0, 500, i =>
@@ -26,8 +25,7 @@ namespace DoubleQueueTest {
 
             //        #endregion 使用双缓冲队列
 
-
-            #region 使用双缓冲队列
+            #region 使用双缓冲队列 多个消费者
 
             Parallel.For(0, 500, i =>
             {
@@ -39,11 +37,11 @@ namespace DoubleQueueTest {
                 doubleQueueList.PruducerFunc(user);
             });
 
-            #endregion 使用双缓冲队列
+            #endregion 使用双缓冲队列 多个消费者
 
             //Stopwatch watch = Stopwatch.StartNew();
             //int allcount = 0;
-            //Parallel.For(0, 1000, i =>
+            //Parallel.For(0, 500, i =>
             //{
             //    User user = new User()
             //    {
@@ -56,7 +54,7 @@ namespace DoubleQueueTest {
             //        FluentConsole.White.Background.Red.Line(user.ToString());
             //        allcount++;
             //        FluentConsole.White.Background.Red.Line($"当前个数{allcount.ToString()}，花费了{watch.ElapsedMilliseconds.ToString()}ms;");
-            //        System.Threading.Thread.Sleep(300);
+            //        System.Threading.Thread.Sleep(30);
             //    }
             //});
             FluentConsole.Black.Background.Red.Line("执行完成");
