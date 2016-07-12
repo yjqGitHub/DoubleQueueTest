@@ -18,13 +18,37 @@ using static FluentConsole;
 namespace DoubleQueueTest {
 
     public class DoubleQueueList {
+
+        /// <summary>
+        /// 写队列列表
+        /// </summary>
         private List<ConcurrentQueue<User>> _writeQueueList = new List<ConcurrentQueue<User>>();
+
+        /// <summary>
+        /// 读队列列表
+        /// </summary>
         private List<ConcurrentQueue<User>> _readQueueList = new List<ConcurrentQueue<User>>();
+
+        /// <summary>
+        /// 当前执行队列列表
+        /// </summary>
         private List<ConcurrentQueue<User>> _currentQueueList = new List<ConcurrentQueue<User>>();
 
+        /// <summary>
+        /// 自动阻塞列表
+        /// </summary>
         private List<AutoResetEvent> _dataEventList = new List<AutoResetEvent>();
+
+        /// <summary>
+        /// 手动阻塞（用于控制写队列是否完成）
+        /// </summary>
         private List<ManualResetEvent> _finishedEventList = new List<ManualResetEvent>();
+
+        /// <summary>
+        /// 手动阻塞（用于控制读写列表是否交换成功）
+        /// </summary>
         private List<ManualResetEvent> _producerEventList = new List<ManualResetEvent>();
+
         private int _dealCount = 0;
 
         public DoubleQueueList(int dealCount) {
@@ -69,10 +93,10 @@ namespace DoubleQueueTest {
                 _dataEventList[hashCode].WaitOne();
                 if (_currentQueueList[hashCode].Count > 0)
                 {
-                    _producerEventList[hashCode].Reset();
-                    _finishedEventList[hashCode].WaitOne();
+                    _producerEventList[hashCode].Reset();//将写入阻塞
+                    _finishedEventList[hashCode].WaitOne();//等待写入的完成
                     consumerQueue = _currentQueueList[hashCode];
-                    _currentQueueList[hashCode] = (_currentQueueList[hashCode] == _writeQueueList[hashCode]) ? _readQueueList[hashCode] : _writeQueueList[hashCode];
+                    _currentQueueList[hashCode] = (_currentQueueList[hashCode] == _writeQueueList[hashCode]) ? _readQueueList[hashCode] : _writeQueueList[hashCode];//交互读写队列的引用
                     _producerEventList[hashCode].Set();
                     while (consumerQueue.Count > 0)
                     {
