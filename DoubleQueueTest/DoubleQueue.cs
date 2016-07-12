@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,13 +17,13 @@ using System.Threading.Tasks;
 namespace DoubleQueueTest {
 
     public class DoubleQueue {
-        private static ConcurrentQueue<User> _writeQueue1;
-        private static ConcurrentQueue<User> _readQueue1;
-        private static ConcurrentQueue<User> _currentQueue1;
+        private ConcurrentQueue<User> _writeQueue1;
+        private ConcurrentQueue<User> _readQueue1;
+        private volatile ConcurrentQueue<User> _currentQueue1;
 
-        private static AutoResetEvent _dataEvent1;
-        private static ManualResetEvent _finishedEvent1;
-        private static ManualResetEvent _producerEvent1;
+        private AutoResetEvent _dataEvent1;
+        private ManualResetEvent _finishedEvent1;
+        private ManualResetEvent _producerEvent1;
 
         public DoubleQueue() {
             _writeQueue1 = new ConcurrentQueue<User>();
@@ -32,7 +33,7 @@ namespace DoubleQueueTest {
             _dataEvent1 = new AutoResetEvent(false);
             _finishedEvent1 = new ManualResetEvent(true);
             _producerEvent1 = new ManualResetEvent(true);
-            Task.Factory.StartNew(() => ConsumerQueue1(), TaskCreationOptions.LongRunning);
+            Task.Factory.StartNew(() => ConsumerQueue1(), TaskCreationOptions.None);
         }
 
         public void Write(User user) {
@@ -43,7 +44,6 @@ namespace DoubleQueueTest {
             _producerEvent1.WaitOne();
             _finishedEvent1.Reset();
             _currentQueue1.Enqueue(user);
-            System.Threading.Thread.Sleep(30);
             _dataEvent1.Set();
             _finishedEvent1.Set();
         }
@@ -71,7 +71,7 @@ namespace DoubleQueueTest {
                             allcount++;
                         }
                         FluentConsole.White.Background.Red.Line($"当前个数{allcount.ToString()}，花费了{watch.ElapsedMilliseconds.ToString()}ms;");
-                        System.Threading.Thread.Sleep(30);
+                        System.Threading.Thread.Sleep(20);
                     }
                 }
             }

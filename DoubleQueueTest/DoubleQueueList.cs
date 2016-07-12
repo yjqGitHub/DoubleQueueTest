@@ -32,7 +32,7 @@ namespace DoubleQueueTest {
         /// <summary>
         /// 当前执行队列列表
         /// </summary>
-        private List<ConcurrentQueue<User>> _currentQueueList = new List<ConcurrentQueue<User>>();
+        private volatile List<ConcurrentQueue<User>> _currentQueueList = new List<ConcurrentQueue<User>>();
 
         /// <summary>
         /// 自动阻塞列表
@@ -52,7 +52,7 @@ namespace DoubleQueueTest {
         private int _dealCount = 0;
 
         public DoubleQueueList(int dealCount) {
-            if (dealCount <= 0) dealCount = 2;
+            if (dealCount <= 0) dealCount = 1;
             if (dealCount >= 10) dealCount = 10;
             _dealCount = dealCount;
             for (int i = 0; i < _dealCount; i++)
@@ -67,8 +67,8 @@ namespace DoubleQueueTest {
 
             for (int i = 0; i < _dealCount; i++)
             {
-                int j = i;
-                Task.Factory.StartNew(() => ConsumerQueue(j), TaskCreationOptions.LongRunning);
+                int j = i;//赋值是为了防止闭包
+                Task.Factory.StartNew(() => ConsumerQueue(j), TaskCreationOptions.None);
             }
         }
 
@@ -77,7 +77,6 @@ namespace DoubleQueueTest {
             _producerEventList[hashCode].WaitOne();
             _finishedEventList[hashCode].Reset();
             _currentQueueList[hashCode].Enqueue(user);
-            System.Threading.Thread.Sleep(30);
             _dataEventList[hashCode].Set();
             _finishedEventList[hashCode].Set();
         }
