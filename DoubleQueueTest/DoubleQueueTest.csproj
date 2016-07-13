@@ -47,8 +47,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DoubleBufferQueue.cs" />
+    <Compile Include="DoubleBufferQueueList.cs" />
     <Compile Include="DoubleQueue.cs" />
-    <Compile Include="DoubleQueueList.cs" />
+    <Compile Include="LogBufferQueue.cs" />
+    <Compile Include="LogBufferQueueList.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="User.cs" />
