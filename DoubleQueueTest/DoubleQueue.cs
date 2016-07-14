@@ -17,52 +17,48 @@ using System.Threading.Tasks;
 namespace DoubleQueueTest {
 
     public class DoubleQueue {
-        private ConcurrentQueue<User> _writeQueue1;
-        private ConcurrentQueue<User> _readQueue1;
-        private volatile ConcurrentQueue<User> _currentQueue1;
+        private ConcurrentQueue<User> _writeQueue;
+        private ConcurrentQueue<User> _readQueue;
+        private volatile ConcurrentQueue<User> _currentQueue;
 
-        private AutoResetEvent _dataEvent1;
-        private ManualResetEvent _finishedEvent1;
-        private ManualResetEvent _producerEvent1;
+        private AutoResetEvent _dataEvent;
+        private ManualResetEvent _finishedEvent;
+        private ManualResetEvent _producerEvent;
 
         public DoubleQueue() {
-            _writeQueue1 = new ConcurrentQueue<User>();
-            _readQueue1 = new ConcurrentQueue<User>();
-            _currentQueue1 = _writeQueue1;
+            _writeQueue = new ConcurrentQueue<User>();
+            _readQueue = new ConcurrentQueue<User>();
+            _currentQueue = _writeQueue;
 
-            _dataEvent1 = new AutoResetEvent(false);
-            _finishedEvent1 = new ManualResetEvent(true);
-            _producerEvent1 = new ManualResetEvent(true);
-            Task.Factory.StartNew(() => ConsumerQueue1(), TaskCreationOptions.None);
+            _dataEvent = new AutoResetEvent(false);
+            _finishedEvent = new ManualResetEvent(true);
+            _producerEvent = new ManualResetEvent(true);
+            Task.Factory.StartNew(() => ConsumerQueue(), TaskCreationOptions.None);
         }
 
-        public void Write(User user) {
-            HashCode1(user);
+        public void ProducerFunc(User user) {
+            _producerEvent.WaitOne();
+            _finishedEvent.Reset();
+            _currentQueue.Enqueue(user);
+            _dataEvent.Set();
+            _finishedEvent.Set();
         }
 
-        public void HashCode1(User user) {
-            _producerEvent1.WaitOne();
-            _finishedEvent1.Reset();
-            _currentQueue1.Enqueue(user);
-            _dataEvent1.Set();
-            _finishedEvent1.Set();
-        }
-
-        public void ConsumerQueue1() {
+        public void ConsumerQueue() {
             ConcurrentQueue<User> consumerQueue;
             User user;
             int allcount = 0;
             Stopwatch watch = Stopwatch.StartNew();
             while (true)
             {
-                _dataEvent1.WaitOne();
-                if (_currentQueue1.Count > 0)
+                _dataEvent.WaitOne();
+                if (_currentQueue.Count > 0)
                 {
-                    _producerEvent1.Reset();
-                    _finishedEvent1.WaitOne();
-                    consumerQueue = _currentQueue1;
-                    _currentQueue1 = (_currentQueue1 == _writeQueue1) ? _readQueue1 : _writeQueue1;
-                    _producerEvent1.Set();
+                    _producerEvent.Reset();
+                    _finishedEvent.WaitOne();
+                    consumerQueue = _currentQueue;
+                    _currentQueue = (_currentQueue == _writeQueue) ? _readQueue : _writeQueue;
+                    _producerEvent.Set();
                     while (consumerQueue.Count > 0)
                     {
                         if (consumerQueue.TryDequeue(out user))

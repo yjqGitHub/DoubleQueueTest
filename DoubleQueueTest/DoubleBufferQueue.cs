@@ -17,7 +17,7 @@ namespace DoubleQueueTest {
     public abstract class DoubleBufferQueue<T> where T : class, new() {
         private ConcurrentQueue<T> _writerQueue;
         private ConcurrentQueue<T> _readerQueue;
-        private ConcurrentQueue<T> _currentWriterQueue;
+        private volatile ConcurrentQueue<T> _currentWriterQueue;
 
         private ManualResetEvent _finishEvenet;
         private ManualResetEvent _writerEvent;
