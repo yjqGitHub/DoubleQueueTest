@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BlockingCollectionQueue.cs" />
     <Compile Include="DoubleBufferQueue.cs" />
     <Compile Include="DoubleBufferQueueList.cs" />
     <Compile Include="DoubleQueue.cs" />

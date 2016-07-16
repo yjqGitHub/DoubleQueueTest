@@ -37,16 +37,6 @@ namespace DoubleQueueTest {
         /// </summary>
         private List<AutoResetEvent> _dataEventList = new List<AutoResetEvent>();
 
-        /// <summary>
-        /// 手动阻塞（用于控制写队列是否完成）
-        /// </summary>
-        private List<ManualResetEvent> _finishedEventList = new List<ManualResetEvent>();
-
-        /// <summary>
-        /// 手动阻塞（用于控制读写列表是否交换成功）
-        /// </summary>
-        private List<ManualResetEvent> _writerEventList = new List<ManualResetEvent>();
-
         private int _queueCount = 0;
 
         public DoubleBufferQueueList(int queueCount) {
@@ -59,8 +49,6 @@ namespace DoubleQueueTest {
                 _readerQueueList.Add(new ConcurrentQueue<T>());
                 _currentQueueList.Add(new ConcurrentQueue<T>());
                 _dataEventList.Add(new AutoResetEvent(false));
-                _finishedEventList.Add(new ManualResetEvent(true));
-                _writerEventList.Add(new ManualResetEvent(true));
             }
 
             for (int i = 0; i < _queueCount; i++)
@@ -72,11 +60,8 @@ namespace DoubleQueueTest {
 
         public void ProducerFunc(T info) {
             int hashCode = GetHashCode(info) % _queueCount;
-            _writerEventList[hashCode].WaitOne();
-            _finishedEventList[hashCode].Reset();
             _currentQueueList[hashCode].Enqueue(info);
             _dataEventList[hashCode].Set();
-            _finishedEventList[hashCode].Set();
         }
 
         public virtual int GetHashCode(T info) {
@@ -91,17 +76,12 @@ namespace DoubleQueueTest {
                 _dataEventList[hashCode].WaitOne();
                 if (_currentQueueList[hashCode].Count > 0)
                 {
-                    _writerEventList[hashCode].Reset();//将写入阻塞
-                    _finishedEventList[hashCode].WaitOne();//等待写入的完成
-                    consumerQueue = _currentQueueList[hashCode];
                     _currentQueueList[hashCode] = (_currentQueueList[hashCode] == _writerQueueList[hashCode]) ? _readerQueueList[hashCode] : _writerQueueList[hashCode];//交互读写队列的引用
-                    _writerEventList[hashCode].Set();
-                    while (consumerQueue.Count > 0)
+                    consumerQueue = (_currentQueueList[hashCode] == _writerQueueList[hashCode]) ? _readerQueueList[hashCode] : _writerQueueList[hashCode];
+                    while (!consumerQueue.IsEmpty)
                     {
                         if (consumerQueue.TryDequeue(out info))
-                        {
                             Dequeue(info);
-                        }
                     }
                 }
             }

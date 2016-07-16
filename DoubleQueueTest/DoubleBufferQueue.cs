@@ -19,8 +19,6 @@ namespace DoubleQueueTest {
         private ConcurrentQueue<T> _readerQueue;
         private volatile ConcurrentQueue<T> _currentWriterQueue;
 
-        private ManualResetEvent _finishEvenet;
-        private ManualResetEvent _writerEvent;
         private AutoResetEvent _dataEvent;
 
         public DoubleBufferQueue() {
@@ -28,19 +26,14 @@ namespace DoubleQueueTest {
             _readerQueue = new ConcurrentQueue<T>();
             _currentWriterQueue = _writerQueue;
 
-            _finishEvenet = new ManualResetEvent(true);
-            _writerEvent = new ManualResetEvent(true);
             _dataEvent = new AutoResetEvent(false);
 
             Task.Factory.StartNew(() => ConsumerFunc(), TaskCreationOptions.None);
         }
 
         public void ProducerFunc(T info) {
-            _writerEvent.WaitOne();
-            _finishEvenet.Reset();
             _currentWriterQueue.Enqueue(info);
             _dataEvent.Set();
-            _finishEvenet.Set();
         }
 
         public void ConsumerFunc() {
@@ -49,18 +42,13 @@ namespace DoubleQueueTest {
             while (true)
             {
                 _dataEvent.WaitOne();
-                _writerEvent.Reset();
-                _finishEvenet.WaitOne();
                 readerQueue = _currentWriterQueue;
                 _currentWriterQueue = (_currentWriterQueue == _writerQueue) ? _readerQueue : _writerQueue;
-                _writerEvent.Set();
-
+                readerQueue = (_currentWriterQueue == _writerQueue) ? _readerQueue : _writerQueue;
                 while (!readerQueue.IsEmpty)
                 {
                     if (readerQueue.TryDequeue(out info))
-                    {
                         Dequeue(info);
-                    }
                 }
             }
         }

@@ -21,6 +21,7 @@ namespace DoubleQueueTest {
 
         public override void Dequeue(User info) {
             FluentConsole.White.Background.Red.Line(info.ToString());
+            System.Threading.Thread.Sleep(20);
         }
     }
 }
