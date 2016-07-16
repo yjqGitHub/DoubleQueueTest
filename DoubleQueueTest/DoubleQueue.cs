@@ -44,7 +44,7 @@ namespace DoubleQueueTest {
             while (true)
             {
                 _dataEvent.WaitOne();
-                if (_currentQueue.Count > 0)
+                if (!_currentQueue.IsEmpty)
                 {
                     _currentQueue = (_currentQueue == _writeQueue) ? _readQueue : _writeQueue;
                     consumerQueue = (_currentQueue == _writeQueue) ? _readQueue : _writeQueue;
